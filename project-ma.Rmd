@@ -1,0 +1,88 @@
+---
+title: "Final Project"
+author: "Marisol Arita"
+date: "2023-11-27"
+output: word_document
+always_allow_html: true
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE)
+```
+
+
+```{r}
+
+library(tidyverse)
+library(readxl)
+library(ggplot2)
+
+```
+\
+\
+
+For my project I measured my daily oxygen saturation as my main metric and compared to whether liquid consumption would affect this. \
+* Some guidelines i followed to make it easier: I only counted drinks as liquids, did not count food including soups. I used premeasured drinks and bottles as a way to estimate my drinking. \
+I collected data from nov. 15 - nov. 28 of 2023 \
+* I used an oximetry (spo2) meter to measure it daily usually at night after a day of drinking. \
+* My question is: Test if the data provides evidence that the average oxygen saturation level after drinking less than 16 ounces of liquid is significantly different from that of drinking 16 or more ounces.  \
+I used the significance level of .05 to test the claim \
+$H_0: \mu1 = \mu2$ vs $H_a: \mu1 \ne \mu2$
+```{r}
+
+oxygenData <- read_excel("/Users/machome/Library/Mobile Documents/com~apple~CloudDocs/1. Data vis/Final Project/oxygen data.xlsx")
+
+
+t.test(OxygenSaturation~SixteenPlus, data = oxygenData, alternative = "two.sided")
+
+
+```
+According to two sided t-test at 5% sig. level, p value of .003112 is smaller than .05 and thus we reject $H_0$ in favor of the $H_a$ and so there is significant difference in oxygen saturation level between drinking 16 or more ounces of liquid. 
+
+\
+\
+\
+\
+
+```{r}
+
+#use length to find n
+# length(oxygenData)
+
+
+oxygenData %>%
+  group_by(SixteenPlus) %>%
+  summarize(average = mean(OxygenSaturation), SE = sd(OxygenSaturation) / sqrt(4), tstar = qt(1-.05 / 2, 4-1)) %>%
+  ggplot(aes(x = SixteenPlus, y = average)) + 
+  geom_point() +
+  geom_errorbar(aes(ymin = average - tstar * SE, ymax = average + tstar * SE)) +
+  labs(x = "Oxygen saturation", y = "Average")
+
+
+```
+ \
+ *If the CI from one group includes the mean from the other group => no significant difference \
+ *If the CI from one group does NOT include the mean from the other group => significant difference \
+ In this case, graph shows there is a significant difference in oxygen saturation between drinking less than 16 ounces and more as neither mean overlaps in the opposite confidence interval.
+
+
+
+\
+\
+Also tested whether my mean oxygen saturation is compared to 'normal' healthy levels (95 - 100%) using 95 as my base of comparison. \
+$H_0: \mu = 97$ vs $H_a: \mu > 97$
+```{r}
+
+oxygenData <- read_excel("/Users/machome/Library/Mobile Documents/com~apple~CloudDocs/1. Data vis/Final Project/oxygen data.xlsx")
+
+
+t.test(oxygenData$OxygenSaturation, mu = 95, alternative = "greater")
+
+
+```
+According to t-test, p value is less than 5% sig. level (p < .05) therefore I reject $H_0$ in favor of $H_a$ and accept that the claim that mean is higher than 95% oxygen saturation. 
+
+
+
+
+
